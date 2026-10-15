@@ -1,12 +1,22 @@
+
 package coderarmy.in.avatarDemo.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@AllArgsConstructor
-@Getter
 public class AskResponse {
 
     private String answer;
 
+    public AskResponse() {
+    }
+
+    public AskResponse(String answer) {
+        this.answer = answer;
+    }
+
+    public String getAnswer() {
+        return answer;
+    }
+
+    public void setAnswer(String answer) {
+        this.answer = answer;
+    }
 }

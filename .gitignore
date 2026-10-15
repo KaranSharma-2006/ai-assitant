@@ -1,0 +1,26 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Java build output
+**/target/
+**/build/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
+startup-error.txt
+
+# Python generated files
+**/__pycache__/
+**/.venv/
+**/venv/

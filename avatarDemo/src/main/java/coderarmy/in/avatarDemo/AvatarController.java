@@ -18,8 +18,7 @@ public class AvatarController {
 
     @PostMapping("/ask")
     public AskResponse ask(@RequestBody AskRequest request) {
-        String answer = avatarService.ask(request.getQuestion());
-
+        String answer = avatarService.ask(request.getMessage());
         return new AskResponse(answer);
     }
 
@@ -27,12 +26,7 @@ public class AvatarController {
             value = "/ask/stream",
             produces = MediaType.TEXT_EVENT_STREAM_VALUE
     )
-    public Flux<String> askStream(
-            @RequestBody AskRequest request) {
-
-        return avatarService
-                .askStream(
-                        request.getQuestion()
-                );
+    public Flux<String> askStream(@RequestBody AskRequest request) {
+        return avatarService.askStream(request.getMessage());
     }
 }

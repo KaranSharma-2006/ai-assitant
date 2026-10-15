@@ -1,14 +1,18 @@
+
 package coderarmy.in.avatarDemo.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@NoArgsConstructor
-@Getter
-@Setter
 public class AskRequest {
 
-    private String question;
+    private String message;
 
+    public AskRequest() {
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }

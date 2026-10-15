@@ -42,10 +42,11 @@ async def process_question(
             response = await client.post(
                 SPRING_AVATAR_URL,
                 json={
-                    "question": question
+                    "message": question
                 },
                 timeout=60.0
             )
+
 
             response.raise_for_status()
 
@@ -63,7 +64,7 @@ async def process_question(
         print("ERROR:", error)
 
         session.say(
-            "Sorry, abhi answer generate karne me problem aa rhi hai."
+            "Sorry, but karan sharma abhi bhi problem hai"
         )
 
 @server.rtc_session()

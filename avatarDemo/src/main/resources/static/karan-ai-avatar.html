@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0">
+
+    <title>Karan Sharma | AI Avatar</title>
+
+
+    <!-- LiveKit Browser SDK -->
+    <script
+            src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js">
+    </script>
+
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #080a12;
+            --surface: rgba(18, 22, 38, 0.78);
+            --surface-strong: #121629;
+            --text: #f6f7ff;
+            --muted: #a3acc4;
+            --line: rgba(175, 190, 255,  0.15);
+            --violet: #9b8cff;
+            --cyan: #64e5ef;
+            --green: #4ade80;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { min-height: 100%; scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(ellipse at 12% 7%, rgba(104, 76, 255, 0.22), transparent 34rem),
+                radial-gradient(ellipse at 90% 22%, rgba(35, 204, 221, 0.12), transparent 31rem),
+                linear-gradient(145deg, #080a12 0%, #0c1020 52%, #080a12 100%);
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: .18;
+            background-image: radial-gradient(rgba(255,255,255,.22) .65px, transparent .65px);
+            background-size: 24px 24px;
+            mask-image: linear-gradient(to bottom, black, transparent 75%);
+        }
+
+        header {
+            position: relative;
+            z-index: 2;
+            min-height: 78px;
+            padding: 0 clamp(18px, 5vw, 64px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(8, 10, 18, .68);
+            backdrop-filter: blur(18px);
+        }
+
+        .brand { display: flex; align-items: center; gap: 13px; font-size: 16px; font-weight: 750; letter-spacing: -.3px; }
+
+        .logo {
+            position: relative;
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,.28);
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--violet), #6656db 55%, #35c7db);
+            color: white;
+            font-size: 14px;
+            font-weight: 900;
+            letter-spacing: -.7px;
+            box-shadow: 0 7px 28px rgba(122, 104, 255, .28), inset 0 1px rgba(255,255,255,.3);
+        }
+
+        .brand-copy { display: flex; flex-direction: column; gap: 2px; }
+        .brand-copy small { color: var(--muted); font-size: 11px; font-weight: 550; letter-spacing: .7px; text-transform: uppercase; }
+
+        .connection { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; font-weight: 650; }
+        .connection-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #727b91; box-shadow: 0 0 0 4px rgba(114,123,145,.12); }
+        .connection-dot.connected { background: var(--green); box-shadow: 0 0 0 4px rgba(74,222,128,.12), 0 0 16px rgba(74,222,128,.6); }
+
+        main { position: relative; z-index: 1; width: min(1120px, 92%); margin: clamp(32px, 5vw, 58px) auto 64px; }
+
+        .hero { max-width: 760px; margin: 0 auto 30px; text-align: center; }
+        .hero::before {
+            content: "PERSONAL AI • LIVE VOICE AVATAR";
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 17px;
+            padding: 8px 12px;
+            border: 1px solid rgba(155,140,255,.25);
+            border-radius: 999px;
+            background: rgba(111, 92, 231, .09);
+            color: #c5bdff;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.7px;
+        }
+        .hero h1 { margin: 0; font-size: clamp(32px, 5.4vw, 58px); line-height: 1.08; letter-spacing: -2.2px; font-weight: 820; }
+        .hero h1 { background: linear-gradient(100deg, #fff 15%, #c8c0ff 58%, #7deaf1 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .hero p { max-width: 620px; margin: 15px auto 0; color: var(--muted); font-size: clamp(14px, 1.8vw, 16px); line-height: 1.7; }
+
+        .avatar-card {
+            position: relative;
+            width: min(940px, 100%);
+            aspect-ratio: 16 / 9;
+            margin: auto;
+            overflow: hidden;
+            border: 1px solid rgba(183, 192, 255, .24);
+            border-radius: 24px;
+            background: #080a12;
+            box-shadow: 0 30px 100px rgba(0,0,0,.42), 0 0 55px rgba(113,92,255,.11), inset 0 1px rgba(255,255,255,.08);
+        }
+        .avatar-card::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(255,255,255,.025); }
+        #avatarVideo { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at 50% 50%, #151a32 0%, #080a12 68%); }
+        #avatarVideo video { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; background: #080a12; }
+
+        .avatar-placeholder { position: relative; z-index: 1; padding: 20px; text-align: center; color: var(--muted); }
+        .avatar-placeholder .icon { position: relative; width: 74px; height: 74px; margin: 0 auto 20px; border: 1px solid rgba(183,173,255,.48); border-radius: 24px; background: linear-gradient(145deg, rgba(155,140,255,.22), rgba(100,229,239,.09)); box-shadow: 0 0 45px rgba(126,106,255,.18), inset 0 1px rgba(255,255,255,.14); }
+        .avatar-placeholder .icon::before { content: "KS"; position: absolute; inset: 0; display: grid; place-items: center; color: #e8e4ff; font-size: 24px; font-weight: 850; letter-spacing: -1px; }
+        .avatar-placeholder strong { display: block; margin-bottom: 8px; color: #f3f2ff; font-size: clamp(18px, 2.3vw, 23px); letter-spacing: -.5px; }
+        .avatar-placeholder span { color: #929bb4; font-size: 13px; }
+
+        .status-pill { position: absolute; z-index: 10; top: 17px; left: 17px; max-width: calc(100% - 34px); padding: 10px 14px; border: 1px solid rgba(255,255,255,.15); border-radius: 999px; background: rgba(8,10,18,.76); backdrop-filter: blur(16px); color: #e6e8ff; font-size: 12px; font-weight: 650; box-shadow: 0 8px 25px rgba(0,0,0,.18); }
+
+        .controls { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 23px; flex-wrap: wrap; }
+        button { min-height: 46px; border: 1px solid transparent; padding: 12px 19px; border-radius: 13px; font: inherit; font-size: 13px; font-weight: 750; letter-spacing: .1px; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease; }
+        button:hover:not(:disabled) { transform: translateY(-2px); }
+        button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+        button:disabled { cursor: not-allowed; opacity: .42; }
+        .primary { color: #0a0b14; background: linear-gradient(100deg, #c2b8ff, #80eaf0); box-shadow: 0 8px 28px rgba(121, 112, 255, .22); }
+        .primary:hover:not(:disabled) { box-shadow: 0 12px 32px rgba(121,112,255,.32); }
+        .secondary { color: #edf0ff; background: rgba(22,27,46,.8); border-color: rgba(183,192,255,.18); }
+        .secondary:hover:not(:disabled) { background: rgba(35,41,67,.95); border-color: rgba(183,192,255,.34); }
+        .danger { color: #ffb7c0; background: rgba(74,24,43,.48); border-color: rgba(255,119,147,.22); }
+        .danger:hover:not(:disabled) { background: rgba(105,29,53,.6); }
+
+        .architecture { margin-top: 58px; padding: 30px 22px 24px; border: 1px solid var(--line); border-radius: 22px; background: linear-gradient(145deg, rgba(20,24,42,.72), rgba(12,15,27,.65)); box-shadow: 0 20px 55px rgba(0,0,0,.14); }
+        .architecture-title { margin-bottom: 23px; text-align: center; color: #d7d9ee; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.8px; }
+        .pipeline { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 9px; }
+        .node { padding: 10px 13px; border: 1px solid rgba(172,183,255,.14); border-radius: 11px; background: rgba(28,34,57,.76); color: #dfe3fb; font-size: 11px; font-weight: 650; box-shadow: inset 0 1px rgba(255,255,255,.025); }
+        .node:nth-of-type(4), .node:nth-of-type(6) { border-color: rgba(155,140,255,.3); background: rgba(103,85,207,.12); }
+        .arrow { color: #717c9e; font-size: 14px; }
+        .hint { max-width: 660px; margin: 22px auto 0; text-align: center; color: #8791ad; font-size: 12px; line-height: 1.7; }
+
+        /* Keep remote audio elements alive; move them outside the visible UI. */
+        #audioTracks { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+
+        @media (max-width: 650px) {
+            header { min-height: 70px; padding: 0 16px; }
+            .brand { gap: 10px; font-size: 14px; }
+            .logo { width: 38px; height: 38px; border-radius: 12px; }
+            .brand-copy small { font-size: 9px; }
+            .connection { gap: 7px; font-size: 11px; }
+            main { width: min(100% - 28px, 1120px); margin-top: 34px; }
+            .hero { margin-bottom: 24px; }
+            .hero h1 { letter-spacing: -1.4px; }
+            .hero::before { font-size: 9px; letter-spacing: 1.2px; }
+            .avatar-card { width: 100%; aspect-ratio: 4 / 3; border-radius: 19px; }
+            .status-pill { top: 11px; left: 11px; padding: 8px 11px; font-size: 10px; }
+            .controls { gap: 9px; margin-top: 17px; }
+            button { min-height: 43px; padding: 11px 13px; font-size: 12px; }
+            .architecture { margin-top: 42px; padding: 24px 13px 19px; border-radius: 18px; }
+            .pipeline { gap: 8px; }
+            .node { padding: 9px 10px; font-size: 10px; }
+            .arrow { display: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="brand">
+
+        <div class="logo">
+            KS
+        </div>
+
+        <div>
+            Karan AI
+        </div>
+
+    </div>
+
+
+    <div class="connection">
+
+        <div
+                id="connectionDot"
+                class="connection-dot">
+        </div>
+
+        <span id="connectionText">
+            Disconnected
+        </span>
+
+    </div>
+
+</header>
+
+
+<main>
+
+
+    <section class="hero">
+
+        <h1>
+            Meet Karan's AI Avatar
+        </h1>
+
+        <p>
+            Java, Spring Boot, AI, cloud — aur thoda sa Karan-style humour. 😂
+        </p>
+
+    </section>
+
+
+    <section class="avatar-card">
+
+
+        <div
+                id="statusPill"
+                class="status-pill">
+
+            Ready to start
+
+        </div>
+
+
+        <div id="avatarVideo">
+
+            <div class="avatar-placeholder">
+
+                <div class="icon"></div>
+
+                <strong>
+                    Karan AI Avatar
+                </strong>
+
+                <span>
+                    Start a session to begin
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- Remote avatar audio lives here -->
+        <div id="audioTracks"></div>
+
+
+    </section>
+
+
+    <section class="controls">
+
+
+        <button
+                id="startButton"
+                class="primary">
+
+            Start Conversation
+
+        </button>
+
+
+        <button
+                id="micButton"
+                class="secondary"
+                disabled>
+
+            Mute Microphone
+
+        </button>
+
+
+        <button
+                id="audioButton"
+                class="secondary"
+                hidden>
+
+            Enable Audio
+
+        </button>
+
+
+        <button
+                id="endButton"
+                class="danger"
+                disabled>
+
+            End Session
+
+        </button>
+
+
+    </section>
+
+
+    <section class="architecture">
+
+        <div class="architecture-title">
+            What is happening behind the screen?
+        </div>
+
+
+        <div class="pipeline">
+
+            <div class="node">
+                🎤 You
+            </div>
+
+            <span class="arrow">
+                →
+            </span>
+
+            <div class="node">
+                LiveKit
+            </div>
+
+            <span class="arrow">
+                →
+            </span>
+
+            <div class="node">
+                STT
+            </div>
+
+            <span class="arrow">
+                →
+            </span>
+
+            <div class="node">
+                Python Agent
+            </div>
+
+            <span class="arrow">
+                →
+            </span>
+
+            <div class="node">
+                Spring AI + RAG
+            </div>
+
+            <span class="arrow">
+                →
+            </span>
+
+            <div class="node">
+                TTS
+            </div>
+
+            <span class="arrow">
+                →
+            </span>
+
+            <div class="node">
+                Synthesia
+            </div>
+
+            <span class="arrow">
+                →
+            </span>
+
+            <div class="node">
+                🌞 Karan AI Avatar
+            </div>
+
+        </div>
+
+
+        <p class="hint">
+
+            LiveKit handles realtime communication,
+            Spring AI remains the brain,
+            and Synthesia renders the speaking avatar.
+
+        </p>
+
+    </section>
+
+
+</main>
+
+
+<script>
+
+    /*
+     * ================================================================
+     * LIVEKIT
+     * ================================================================
+     */
+
+    const {
+        Room,
+        RoomEvent,
+        Track
+    } = LivekitClient;
+
+
+
+    /*
+     * ================================================================
+     * STATE
+     * ================================================================
+     */
+
+    let room = null;
+
+    let microphoneEnabled = true;
+
+    /*
+     * We don't assume Synthesia always uses a specific
+     * participant name.
+     *
+     * Whichever REMOTE participant gives us the first
+     * video track becomes our avatar participant.
+     */
+    let avatarParticipantIdentity = null;
+
+    /*
+     * Audio can theoretically arrive before video,
+     * so temporarily store it.
+     */
+    let pendingAudioTracks = [];
+
+
+
+    /*
+     * ================================================================
+     * DOM
+     * ================================================================
+     */
+
+    const startButton =
+        document.getElementById(
+            "startButton"
+        );
+
+    const micButton =
+        document.getElementById(
+            "micButton"
+        );
+
+    const endButton =
+        document.getElementById(
+            "endButton"
+        );
+
+    const audioButton =
+        document.getElementById(
+            "audioButton"
+        );
+
+    const avatarVideo =
+        document.getElementById(
+            "avatarVideo"
+        );
+
+    const audioTracks =
+        document.getElementById(
+            "audioTracks"
+        );
+
+    const connectionDot =
+        document.getElementById(
+            "connectionDot"
+        );
+
+    const connectionText =
+        document.getElementById(
+            "connectionText"
+        );
+
+    const statusPill =
+        document.getElementById(
+            "statusPill"
+        );
+
+
+
+    /*
+     * ================================================================
+     * START CONVERSATION
+     * ================================================================
+     */
+
+    startButton.addEventListener(
+        "click",
+        startSession
+    );
+
+
+    async function startSession() {
+
+        try {
+
+            startButton.disabled = true;
+
+
+            setStatus(
+                "Creating session..."
+            );
+
+
+            /*
+             * New room for every conversation.
+             *
+             * Because the Python worker uses automatic
+             * dispatch, a new room causes our agent
+             * to receive a LiveKit job.
+             */
+
+            const roomName =
+                "avatar-" +
+                crypto.randomUUID();
+
+
+
+            /*
+             * Get LiveKit token from Spring Boot.
+             */
+
+            const response =
+                await fetch(
+                    "/api/livekit/token",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            roomName: roomName
+                        })
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Could not generate LiveKit token"
+                );
+
+            }
+
+
+            const credentials =
+                await response.json();
+
+
+
+            /*
+             * IMPORTANT:
+             *
+             * adaptiveStream is FALSE.
+             *
+             * We don't want LiveKit aggressively
+             * lowering the avatar video resolution.
+             */
+
+            room = new Room({
+
+                adaptiveStream: false
+
+            });
+
+
+
+            /*
+             * Register listeners BEFORE connecting
+             * so we don't miss track events.
+             */
+
+            registerRoomEvents();
+
+
+
+            setStatus(
+                "Connecting to LiveKit..."
+            );
+
+
+
+            /*
+             * Join LiveKit.
+             *
+             * Explicitly enable autoSubscribe so
+             * remote Synthesia tracks are received.
+             */
+
+            await room.connect(
+                credentials.serverUrl,
+                credentials.token,
+                {
+                    autoSubscribe: true
+                }
+            );
+
+
+            setConnected(true);
+
+
+            setStatus(
+                "Waiting for AI assistant..."
+            );
+
+
+
+            /*
+             * Enable and publish user's microphone.
+             */
+
+            await room.localParticipant
+                .setMicrophoneEnabled(
+                    true
+                );
+
+
+            microphoneEnabled = true;
+
+
+
+            /*
+             * Browser autoplay handling.
+             */
+
+            try {
+
+                await room.startAudio();
+
+            } catch (error) {
+
+                console.log(
+                    "Browser requires user interaction for audio."
+                );
+
+            }
+
+
+            micButton.disabled = false;
+
+            endButton.disabled = false;
+
+
+        } catch (error) {
+
+            console.error(
+                "START SESSION ERROR:",
+                error
+            );
+
+
+            setStatus(
+                "Connection failed"
+            );
+
+
+            setConnected(false);
+
+
+            startButton.disabled = false;
+
+        }
+
+    }
+
+
+
+    /*
+     * ================================================================
+     * ROOM EVENTS
+     * ================================================================
+     */
+
+    function registerRoomEvents() {
+
+
+        /*
+         * ------------------------------------------------------------
+         * PARTICIPANT JOINED
+         * ------------------------------------------------------------
+         */
+
+        room.on(
+            RoomEvent.ParticipantConnected,
+            participant => {
+
+                console.log(
+                    "PARTICIPANT JOINED:",
+                    participant.identity
+                );
+
+
+                /*
+                 * We don't yet know whether this participant
+                 * is Python or Synthesia.
+                 *
+                 * We only decide once a VIDEO arrives.
+                 */
+
+                setStatus(
+                    "AI assistant connecting..."
+                );
+
+            }
+        );
+
+
+
+        /*
+         * ------------------------------------------------------------
+         * REMOTE TRACK RECEIVED
+         * ------------------------------------------------------------
+         */
+
+        room.on(
+            RoomEvent.TrackSubscribed,
+            (
+                track,
+                publication,
+                participant
+            ) => {
+
+
+                console.log(
+                    "REMOTE TRACK:",
+                    {
+                        participant:
+                        participant.identity,
+
+                        kind:
+                        track.kind,
+
+                        source:
+                        publication.source
+                    }
+                );
+
+
+
+                /*
+                 * =================================================
+                 * VIDEO
+                 * =================================================
+                 *
+                 * Python agent does not publish video.
+                 *
+                 * Therefore the first remote video should
+                 * be our Synthesia avatar.
+                 */
+
+                if (
+                    track.kind ===
+                    Track.Kind.Video
+                ) {
+
+
+                    console.log(
+                        "AVATAR VIDEO RECEIVED FROM:",
+                        participant.identity
+                    );
+
+
+                    avatarParticipantIdentity =
+                        participant.identity;
+
+
+
+                    /*
+                     * Remove placeholder / old video.
+                     */
+
+                    avatarVideo.innerHTML = "";
+
+
+
+                    /*
+                     * LiveKit creates the <video> element.
+                     */
+
+                    const video =
+                        track.attach();
+
+
+                    video.autoplay = true;
+
+                    video.playsInline = true;
+
+                    /*
+                     * Don't crop the avatar.
+                     */
+
+                    video.style.width = "100%";
+
+                    video.style.height = "100%";
+
+                    video.style.objectFit = "contain";
+
+                    video.style.objectPosition = "center";
+
+                    video.style.background = "#08090c";
+
+
+
+                    avatarVideo.appendChild(
+                        video
+                    );
+
+
+
+                    /*
+                     * If audio arrived before video,
+                     * attach the audio belonging to this
+                     * same participant now.
+                     */
+
+                    attachPendingAvatarAudio();
+
+
+
+                    setStatus(
+                        "Listening..."
+                    );
+
+
+                    return;
+
+                }
+
+
+
+                /*
+                 * =================================================
+                 * AUDIO
+                 * =================================================
+                 */
+
+                if (
+                    track.kind ===
+                    Track.Kind.Audio
+                ) {
+
+
+                    /*
+                     * If we've already detected which
+                     * participant owns the avatar,
+                     * only attach audio from that participant.
+                     */
+
+                    if (
+                        avatarParticipantIdentity
+                        !== null
+                    ) {
+
+
+                        if (
+                            participant.identity ===
+                            avatarParticipantIdentity
+                        ) {
+
+                            attachAudioTrack(
+                                track
+                            );
+
+                        }
+
+
+                        return;
+
+                    }
+
+
+
+                    /*
+                     * Video hasn't arrived yet.
+                     *
+                     * Temporarily hold remote audio.
+                     */
+
+                    pendingAudioTracks.push({
+
+                        track: track,
+
+                        participantIdentity:
+                        participant.identity
+
+                    });
+
+                }
+
+            }
+        );
+
+
+
+        /*
+         * ------------------------------------------------------------
+         * TRACK REMOVED
+         * ------------------------------------------------------------
+         */
+
+        room.on(
+            RoomEvent.TrackUnsubscribed,
+            (
+                track,
+                publication,
+                participant
+            ) => {
+
+
+                console.log(
+                    "TRACK UNSUBSCRIBED:",
+                    participant.identity,
+                    track.kind
+                );
+
+
+                track.detach()
+                    .forEach(
+                        element => {
+                            element.remove();
+                        }
+                    );
+
+            }
+        );
+
+
+
+        /*
+         * ------------------------------------------------------------
+         * PARTICIPANT LEFT
+         * ------------------------------------------------------------
+         */
+
+        room.on(
+            RoomEvent.ParticipantDisconnected,
+            participant => {
+
+
+                console.log(
+                    "PARTICIPANT LEFT:",
+                    participant.identity
+                );
+
+
+                if (
+                    participant.identity ===
+                    avatarParticipantIdentity
+                ) {
+
+                    avatarParticipantIdentity =
+                        null;
+
+
+                    setStatus(
+                        "AI assistant disconnected"
+                    );
+
+                }
+
+            }
+        );
+
+
+
+        /*
+         * ------------------------------------------------------------
+         * WHO IS SPEAKING?
+         * ------------------------------------------------------------
+         */
+
+        room.on(
+            RoomEvent.ActiveSpeakersChanged,
+            speakers => {
+
+
+                if (
+                    avatarParticipantIdentity ===
+                    null
+                ) {
+
+                    return;
+
+                }
+
+
+                const avatarSpeaking =
+                    speakers.some(
+                        participant =>
+                            participant.identity ===
+                            avatarParticipantIdentity
+                    );
+
+
+                if (avatarSpeaking) {
+
+                    setStatus(
+                        "AI Assistant is speaking..."
+                    );
+
+                } else if (
+                    room
+                ) {
+
+                    setStatus(
+                        microphoneEnabled
+                            ? "Listening..."
+                            : "Microphone muted"
+                    );
+
+                }
+
+            }
+        );
+
+
+
+        /*
+         * ------------------------------------------------------------
+         * AUDIO AUTOPLAY
+         * ------------------------------------------------------------
+         */
+
+        room.on(
+            RoomEvent.AudioPlaybackStatusChanged,
+            () => {
+
+
+                if (
+                    !room.canPlaybackAudio
+                ) {
+
+                    audioButton.hidden =
+                        false;
+
+                } else {
+
+                    audioButton.hidden =
+                        true;
+
+                }
+
+            }
+        );
+
+
+
+        /*
+         * ------------------------------------------------------------
+         * RECONNECTING
+         * ------------------------------------------------------------
+         */
+
+        room.on(
+            RoomEvent.Reconnecting,
+            () => {
+
+                setStatus(
+                    "Reconnecting..."
+                );
+
+            }
+        );
+
+
+
+        room.on(
+            RoomEvent.Reconnected,
+            () => {
+
+
+                setStatus(
+                    avatarParticipantIdentity
+                        ? "Listening..."
+                        : "Waiting for AI assistant..."
+                );
+
+            }
+        );
+
+
+
+        /*
+         * ------------------------------------------------------------
+         * DISCONNECTED
+         * ------------------------------------------------------------
+         */
+
+        room.on(
+            RoomEvent.Disconnected,
+            () => {
+
+
+                console.log(
+                    "ROOM DISCONNECTED"
+                );
+
+
+                resetUI();
+
+            }
+        );
+
+    }
+
+
+
+    /*
+     * ================================================================
+     * ATTACH AVATAR AUDIO
+     * ================================================================
+     */
+
+    function attachAudioTrack(track) {
+
+
+        console.log(
+            "ATTACHING AVATAR AUDIO"
+        );
+
+
+        const audio =
+            track.attach();
+
+
+        audio.autoplay = true;
+
+
+        audioTracks.appendChild(
+            audio
+        );
+
+    }
+
+
+
+    /*
+     * Audio may arrive before the video.
+     *
+     * Once we know who the avatar participant is,
+     * attach the matching pending audio.
+     */
+
+    function attachPendingAvatarAudio() {
+
+
+        if (
+            avatarParticipantIdentity ===
+            null
+        ) {
+
+            return;
+
+        }
+
+
+        for (
+            const pending
+            of pendingAudioTracks
+            ) {
+
+
+            if (
+                pending.participantIdentity ===
+                avatarParticipantIdentity
+            ) {
+
+                attachAudioTrack(
+                    pending.track
+                );
+
+            }
+
+        }
+
+
+        pendingAudioTracks = [];
+
+    }
+
+
+
+    /*
+     * ================================================================
+     * MUTE / UNMUTE MICROPHONE
+     * ================================================================
+     */
+
+    micButton.addEventListener(
+        "click",
+        async () => {
+
+
+            if (!room) {
+                return;
+            }
+
+
+            microphoneEnabled =
+                !microphoneEnabled;
+
+
+            await room.localParticipant
+                .setMicrophoneEnabled(
+                    microphoneEnabled
+                );
+
+
+            micButton.textContent =
+                microphoneEnabled
+                    ? "Mute Microphone"
+                    : "Unmute Microphone";
+
+
+            setStatus(
+                microphoneEnabled
+                    ? "Listening..."
+                    : "Microphone muted"
+            );
+
+        }
+    );
+
+
+
+    /*
+     * ================================================================
+     * ENABLE AUDIO
+     * ================================================================
+     */
+
+    audioButton.addEventListener(
+        "click",
+        async () => {
+
+
+            if (!room) {
+                return;
+            }
+
+
+            try {
+
+                await room.startAudio();
+
+
+                audioButton.hidden =
+                    true;
+
+
+            } catch (error) {
+
+
+                console.error(
+                    "Could not start audio:",
+                    error
+                );
+
+            }
+
+        }
+    );
+
+
+
+    /*
+     * ================================================================
+     * END SESSION
+     * ================================================================
+     */
+
+    endButton.addEventListener(
+        "click",
+        async () => {
+
+
+            if (room) {
+
+
+                try {
+
+                    await room.disconnect();
+
+                } catch (error) {
+
+                    console.error(
+                        "Disconnect error:",
+                        error
+                    );
+
+                }
+
+
+                room = null;
+
+            }
+
+
+            resetUI();
+
+        }
+    );
+
+
+
+    /*
+     * ================================================================
+     * HELPERS
+     * ================================================================
+     */
+
+    function setStatus(message) {
+
+        statusPill.textContent =
+            message;
+
+    }
+
+
+
+    function setConnected(connected) {
+
+
+        if (connected) {
+
+
+            connectionDot.classList.add(
+                "connected"
+            );
+
+
+            connectionText.textContent =
+                "Connected";
+
+
+        } else {
+
+
+            connectionDot.classList.remove(
+                "connected"
+            );
+
+
+            connectionText.textContent =
+                "Disconnected";
+
+        }
+
+    }
+
+
+
+    function resetUI() {
+
+
+        setConnected(false);
+
+
+        setStatus(
+            "Ready to start"
+        );
+
+
+        avatarParticipantIdentity =
+            null;
+
+
+        pendingAudioTracks =
+            [];
+
+
+        avatarVideo.innerHTML = `
+
+            <div class="avatar-placeholder">
+
+                <div class="icon"></div>
+
+                <strong>
+                    Karan AI Avatar
+                </strong>
+
+                <span>
+                    Start a session to begin
+                </span>
+
+            </div>
+        `;
+
+
+        /*
+         * Remove attached remote audio.
+         */
+
+        audioTracks.innerHTML =
+            "";
+
+
+        microphoneEnabled =
+            true;
+
+
+        micButton.textContent =
+            "Mute Microphone";
+
+
+        startButton.disabled =
+            false;
+
+
+        micButton.disabled =
+            true;
+
+
+        endButton.disabled =
+            true;
+
+
+        audioButton.hidden =
+            true;
+
+    }
+
+</script>
+
+
+</body>
+
+</html>
