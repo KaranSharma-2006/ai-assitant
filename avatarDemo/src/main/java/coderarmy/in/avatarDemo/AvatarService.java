@@ -1,15 +1,15 @@
 package coderarmy.in.avatarDemo;
-import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.beans.factory.annotation.Qualifier;
 import jakarta.annotation.PostConstruct;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.SimpleVectorStore;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
@@ -137,7 +137,7 @@ public class AvatarService {
 
     public AvatarService(
             @Qualifier("ollamaEmbeddingModel") EmbeddingModel embeddingModel,
-            ChatClient.Builder chatClientBuilder) {
+            @Qualifier("openAiChatModel") ChatModel chatModel) {
 
         this.embeddingModel = embeddingModel;
 
@@ -148,7 +148,7 @@ public class AvatarService {
                 .searchRequest(SearchRequest.builder().topK(4).build())
                 .build();
 
-        this.chatClient = chatClientBuilder
+        this.chatClient = ChatClient.builder(chatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(ragAdvisor)
                 .build();
