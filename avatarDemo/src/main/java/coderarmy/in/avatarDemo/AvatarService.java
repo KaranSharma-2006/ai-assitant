@@ -136,7 +136,7 @@ public class AvatarService {
 
 
     public AvatarService(
-            @Qualifier("googleGenAiTextEmbeddingModel") EmbeddingModel embeddingModel,
+            @Qualifier("googleGenAiTextEmbedding") EmbeddingModel embeddingModel,
             @Qualifier("openAiChatModel") ChatModel chatModel)
     {
 
